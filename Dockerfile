@@ -27,19 +27,20 @@ RUN git clone https://github.com/tensorflow/models.git /tensorflow/models
 
 WORKDIR /tensorflow/models/research
 
-RUN wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip && \
-    chmod 775 protoc-3.3.0-linux-x86_64.zip && \
-    unzip protoc-3.3.0-linux-x86_64.zip -d protoc3 && \
+RUN wget https://github.com/google/protobuf/releases/download/v3.0.0/protoc-3.0.0-linux-x86_64.zip && \
+    chmod 775 protoc-3.0.0-linux-x86_64.zip && \
+    unzip protoc-3.0.0-linux-x86_64.zip -d protoc3 && \
     mv protoc3/bin/* /usr/local/bin/ && \
     mv protoc3/include/* /usr/local/include/ && \
+    rm protoc-3.0.0-linux-x86_64.zip && \
     # chown $USER /usr/local/bin/protoc && \
     # chown -R $USER /usr/local/include/google && \
     protoc object_detection/protos/*.proto --python_out=.
 
-RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim && \
+ENV PYTHONPATH=$PYTHONPATH:/tensorflow/models/research:/tensorflow/models/research/slim
 
     # this seems to be the fabled lost page of installation instructions
-    python setup.py build && \
+RUN python setup.py build && \
     python setup.py install
 
 WORKDIR /
@@ -61,6 +62,6 @@ EXPOSE 6006
 
 CMD ["/run_jupyter.sh", "--allow-root"]
 
-CMD ["/bin/bash"]
+# CMD ["/bin/bash"]
 
 # CMD ["jupyter", "notebook", "--allow-root", "--notebook-dir=/tensorflow/models/research/object_detection", "--port=8888"]
