@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 RUN apt-get update && \
            apt-get upgrade -y
 
-WORKDIR \
+WORKDIR /
 
 RUN mkdir -p /tensorflow/models
 
@@ -14,7 +14,7 @@ RUN apt-get install -y \
            #protobuf-compiler
            wget \
            unzip
-           
+
 
 RUN pip install -U pip \
            tensorflow \
@@ -28,11 +28,21 @@ RUN git clone https://github.com/tensorflow/models.git /tensorflow/models
 WORKDIR /tensorflow/models/research
 
 RUN wget https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip && \
-           chmod 775 protoc-3.3.0-linux-x86_64.zip && \
-           unzip protoc-3.3.0-linux-x86_64.zip && \
-           bin/protoc object_detection/protos/*.proto --python_out=.
+    chmod 775 protoc-3.3.0-linux-x86_64.zip && \
+    unzip protoc-3.3.0-linux-x86_64.zip -d protoc3 && \
+    mv protoc3/bin/* /usr/local/bin/ && \
+    mv protoc3/include/* /usr/local/include/ && \
+    # chown $USER /usr/local/bin/protoc && \
+    # chown -R $USER /usr/local/include/google && \
+    protoc object_detection/protos/*.proto --python_out=.
 
-RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
+RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim && \
+
+    # this seems to be the fabled lost page of installation instructions
+    python setup.py build && \
+    python setup.py install
+
+WORKDIR /
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -45,6 +55,9 @@ ENV LANG=C.UTF-8
 
 # jupyter
 EXPOSE 8888
+
+# tensorboard
+EXPOSE 6006
 
 CMD ["/run_jupyter.sh", "--allow-root"]
 
