@@ -21,7 +21,8 @@ RUN pip install -U pip \
            pillow \
            lxml \
            matplotlib \
-           jupyter
+           jupyter \
+           pandas
 
 RUN git clone https://github.com/tensorflow/models.git /tensorflow/models
 
